@@ -1,26 +1,24 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Reading Comprehension Experiment</title>
-    <link href="https://fonts.googleapis.com/css?family=Noto+Sans:400,700|Noto+Serif:400,700|Playfair+Display:700" rel="stylesheet">
-    <link type="text/css" rel="stylesheet" href="node_modules/magpie-modules/magpie.full.css" />
-    <link type="text/css" rel="stylesheet" href="01_custom_styles.css" />
+  <meta charset="UTF-8">
+  <title>Reading Experiment</title>
+
+  <!-- ✅ Load magpie + jquery from CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/magpie-modules@0.1.2/magpie.full.css">
+  <script src="https://unpkg.com/jquery@3.4.1/dist/jquery.min.js"></script>
+  <script src="https://unpkg.com/magpie-modules@0.1.2/magpie.full.js"></script>
+
+  <!-- ✅ Your custom styles -->
+  <link rel="stylesheet" href="01_custom_styles.css">
 </head>
 <body>
-    <noscript>This task requires JavaScript. Please enable JavaScript in your browser and reload the page. For more information on how to do that, please refer to
-        <a href='https://enable-javascript.com' target='_blank'>enable-javascript.com</a>
-    </noscript>
-    
-    <main id='main'>
-        Loading...
-    </main>
+  <div id="main"></div>
 
-    <script type="text/javascript" src="node_modules/magpie-modules/magpie.full.js"></script>
-    <script src="04_trials.js"></script>
-    <script src="03_custom_views_templates.js"></script>
-    <script src="05_views.js"></script>
-    <script src="06_main.js"></script>
+  <!-- ✅ Your experiment scripts -->
+  <script src="04_trials.js"></script>
+  <script src="03_custom_views_templates.js"></script>
+  <script src="05_views.js"></script>
+  <script src="06_main.js"></script>
 </body>
 </html>
