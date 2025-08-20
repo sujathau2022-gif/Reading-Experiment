@@ -1,4 +1,4 @@
-// Custom mouse tracking view with spotlight blur + demographics + CSV + Google Sheet submission
+// Custom mouse tracking view with spotlight blur + demographics + CSV + Google Sheet submission 
 const vocabulary_mouse_tracking_function = function(config) {
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzZ6jUnPqkxA-VZP7gz-yOP4DSCMlgqieIatMesnzUZiURPj36SMYUrddMCV1BllFcMvA/exec";
 
@@ -211,10 +211,14 @@ const vocabulary_mouse_tracking_function = function(config) {
                 </div>
             `);
 
-            // Send CSV to Google Sheet
+            // ✅ FIXED: send as FormData (not raw CSV)
+            const formData = new FormData();
+            formData.append("csv", csv);
+
             fetch(GOOGLE_SHEET_URL, {
                 method: "POST",
-                body: csv
+                mode: "no-cors",
+                body: formData
             }).then(() => console.log("Results sent to Google Sheet"))
               .catch(err => console.error("Error sending to Google Sheet:", err));
         }
