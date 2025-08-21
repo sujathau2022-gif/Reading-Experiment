@@ -1,4 +1,4 @@
-// Custom mouse tracking view with spotlight blur + demographics + CSV + Google Sheet submission 
+// Custom mouse tracking view with spotlight blur + demographics + CSV + Google Sheet submission + Question Responses
 const vocabulary_mouse_tracking_function = function(config) {
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzZ6jUnPqkxA-VZP7gz-yOP4DSCMlgqieIatMesnzUZiURPj36SMYUrddMCV1BllFcMvA/exec";
 
@@ -7,6 +7,7 @@ const vocabulary_mouse_tracking_function = function(config) {
         CT: 0,
         trials: config.trials,
         allMouseData: [],
+        allResponses: [],   // 🔹 NEW: store answers per question
         totalScore: 0,
         demographics: {},
 
@@ -151,7 +152,7 @@ const vocabulary_mouse_tracking_function = function(config) {
             });
         },
 
-        // 🔹 Step 3: Questions
+        // 🔹 Step 3: Questions (with response logging)
         showQuestions: function(trial, magpie) {
             let questionIndex = 0;
             let score = 0;
@@ -171,7 +172,20 @@ const vocabulary_mouse_tracking_function = function(config) {
 
                     $('.answer-btn').on('click', (e) => {
                         const ans = $(e.target).data('answer');
-                        if (ans === trial.questions[questionIndex].correct) {
+                        const correct = trial.questions[questionIndex].correct;
+
+                        // 🔹 Store this response
+                        this.allResponses.push({
+                            passageId: trial.id,
+                            passageTitle: trial.title,
+                            questionIndex: questionIndex + 1,
+                            questionText: trial.questions[questionIndex].question,
+                            response: ans,
+                            correctAnswer: correct,
+                            isCorrect: ans === correct ? 1 : 0
+                        });
+
+                        if (ans === correct) {
                             score++;
                         }
                         questionIndex++;
@@ -193,9 +207,17 @@ const vocabulary_mouse_tracking_function = function(config) {
 
         // 🔹 Step 4: Final results CSV + Google Sheet
         showFinalResults: function() {
-            let csv = "Name,Gender,Designation,Department,Comments,responseTime,ItemId,Index,mouseX,mouseY,Word,wordTop,wordLeft,wordBottom,wordRight,Score\n";
+            // ✅ Responses CSV
+            let csv = "Name,Gender,Designation,Department,Comments,PassageId,PassageTitle,QuestionIndex,QuestionText,Response,CorrectAnswer,IsCorrect,Score\n";
+            this.allResponses.forEach((resp) => {
+                csv += `"${this.demographics.name}","${this.demographics.gender}","${this.demographics.designation}","${this.demographics.department}","${this.demographics.comments}",${resp.passageId},"${resp.passageTitle}",${resp.questionIndex},"${resp.questionText.replace(/"/g, '""')}",${resp.response},${resp.correctAnswer},${resp.isCorrect},${this.totalScore}\n`;
+            });
+
+            // ✅ Mouse tracking CSV (append separately)
+            csv += "\n--- Mouse Tracking Data ---\n";
+            csv += "responseTime,ItemId,Index,mouseX,mouseY,Word,wordTop,wordLeft,wordBottom,wordRight\n";
             this.allMouseData.forEach((entry, i) => {
-                csv += `"${this.demographics.name}","${this.demographics.gender}","${this.demographics.designation}","${this.demographics.department}","${this.demographics.comments}",${entry.time},${entry.itemId},${i},${entry.x},${entry.y},"${entry.word || ""}",${entry.wordPos.top || ""},${entry.wordPos.left || ""},${entry.wordPos.bottom || ""},${entry.wordPos.right || ""},${this.totalScore}\n`;
+                csv += `${entry.time},${entry.itemId},${i},${entry.x},${entry.y},"${entry.word || ""}",${entry.wordPos.top || ""},${entry.wordPos.left || ""},${entry.wordPos.bottom || ""},${entry.wordPos.right || ""}\n`;
             });
 
             // Download CSV locally
@@ -211,14 +233,16 @@ const vocabulary_mouse_tracking_function = function(config) {
                 </div>
             `);
 
-            // ✅ FIXED: send as FormData (not raw CSV)
-            const formData = new FormData();
-            formData.append("csv", csv);
-
+            // ✅ Send JSON to Google Sheet
             fetch(GOOGLE_SHEET_URL, {
                 method: "POST",
-                mode: "no-cors",
-                body: formData
+                body: JSON.stringify({
+                    demographics: this.demographics,
+                    responses: this.allResponses,
+                    mouseData: this.allMouseData,
+                    totalScore: this.totalScore
+                }),
+                headers: { "Content-Type": "application/json" }
             }).then(() => console.log("Results sent to Google Sheet"))
               .catch(err => console.error("Error sending to Google Sheet:", err));
         }
